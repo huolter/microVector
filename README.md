@@ -2,6 +2,8 @@
 
 MicroVector is a lightweight Python tool for managing a small-scale vector database. It is designed to handle vectors associated with documents, providing functionalities such as adding, removing, searching, and persisting the data to disk.
 
+MicroVector follows the SS paradigm: Stupid Simple. :-) 
+
 ## Features
 
 - **Add Node:** Add a vector and its associated document to the database.
@@ -37,3 +39,10 @@ vector_db.save_to_disk("vector_db.pkl")
 
 # Read the database from disk
 vector_db.read_from_disk("vector_db.pkl")
+```
+
+## Next
+
+- Quantization
+- Examples
+
