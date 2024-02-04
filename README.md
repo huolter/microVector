@@ -44,6 +44,16 @@ vector_db.read_from_disk("vector_db.pkl")
 ## Next
 
 - Quantization
+- Voroni Cells
+- Hierarchical Navigable Small-World (HNSW)
 - Examples
 - Benchmarks on speed and memory ussage
+
+## Links and references
+
+- https://thedataquarry.com/posts/vector-db-3/
+- https://www.pinecone.io/learn/series/faiss/faiss-tutorial/
+- https://arxiv.org/abs/1603.09320
+- https://www.youtube.com/watch?v=PNVJvZEkuXo
+- https://www.youtube.com/watch?v=t9mRf2S5vDI 
 
