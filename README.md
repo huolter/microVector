@@ -56,4 +56,5 @@ vector_db.read_from_disk("vector_db.pkl")
 - https://arxiv.org/abs/1603.09320
 - https://www.youtube.com/watch?v=PNVJvZEkuXo
 - https://www.youtube.com/watch?v=t9mRf2S5vDI 
+- https://www.youtube.com/watch?v=SKrHs03i08Q
 
