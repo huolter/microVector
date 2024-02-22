@@ -2,6 +2,24 @@ import numpy as np
 import pickle
 from typing import List, Union
 
+def binary_quantization(vector, num_bits):
+    """
+    Performs binary quantization on a given vector.
+
+    Args:
+        vector (np.ndarray): The vector to be quantized.
+        num_bits (int): The number of bits to use for quantization.
+
+    Returns:
+        np.ndarray: The quantized binary vector.
+    """
+
+    ranges = np.linspace(
+        np.min(vector), np.max(vector), num=2**num_bits + 1, endpoint=True
+    )
+    quantized_vector = np.digitize(vector, ranges, right=True) - 1  # Adjust for 0-based indexing
+    return quantized_vector.astype(np.float32)  # Ensure binary representation
+    
 
 class MicroVectorDB:
     def __init__(self, dimension: int):
@@ -15,17 +33,25 @@ class MicroVectorDB:
         self._nodes = []
         self._index = 0
 
-    def add_node(self, vector: np.ndarray, document: str) -> None:
-        """
-        Add a node to the database.
+    def add_node(self, vector: np.ndarray, document: str, num_bits: int = None) -> None:
+    """
+    Add a node to the database with optional quantization.
 
-        Parameters:
-        - vector (np.ndarray): The vector to be added.
-        - document (str): The associated document.
-        """
+    Args:
+        vector (np.ndarray): The vector to be added.
+        document (str): The associated document.
+        num_bits (int, optional): The number of bits for quantization (default: None).
+    """
+
+    if num_bits is not None:
+        quantized_vector = binary_quantization(vector, num_bits)
+        node = {'vector': quantized_vector, 'document': document, 'index': self._index}
+    else:
         node = {'vector': vector, 'document': document, 'index': self._index}
-        self._nodes.append(node)
-        self._index += 1
+
+    self._nodes.append(node)
+    self._index += 1
+    
 
     def remove_node(self, index: int) -> None:
         """
