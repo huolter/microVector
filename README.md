@@ -23,9 +23,13 @@ import numpy as np
 # Initialize MicroVectorDB with a specified vector dimension
 vector_db = MicroVectorDB(dimension=50)
 
-# Add nodes
+# Add nodes without quantization
 vector_db.add_node(np.random.rand(50), "Document A")
 vector_db.add_node(np.random.rand(50), "Document B")
+
+# Add nodes with 8-bit quantization
+vector_db.add_node(np.random.rand(50), "Document C", num_bits=8)
+vector_db.add_node(np.random.rand(50), "Document D", num_bits=8)
 
 # Remove a node by index
 vector_db.remove_node(0)
@@ -43,7 +47,6 @@ vector_db.read_from_disk("vector_db.pkl")
 
 ## Next
 
-- Quantization
 - Voroni Cells
 - Hierarchical Navigable Small-World (HNSW)
 - Examples
