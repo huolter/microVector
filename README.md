@@ -1,12 +1,15 @@
+Note: quantization untested - will it work? XD
+
 # MicroVector
 
-MicroVector is a lightweight Python tool for managing a small-scale vector database. It is designed to handle vectors associated with documents, providing functionalities such as adding, removing, searching, and persisting the data to disk. All in-memory and with flat index.
+MicroVector is a lightweight Python tool for managing a small-scale vector database. It is designed to handle vectors associated with documents, providing functionalities such as adding, removing, searching, quantization and persisting the data to disk. All in-memory and with flat index.
 
-MicroVector follows the SS paradigm: Stupid Simple. :-) 
+MicroVector follows the SSII paradigm: Stupid Simple, Incredible Inefficient. :-) 
 
 ## Features
 
 - **Add Node:** Add a vector and its associated document to the database.
+- **Binary Quantization:** Apply n-bits binary quantization. 
 - **Remove Node:** Remove a node from the database based on its index.
 - **Search Top K:** Retrieve the top K similar nodes based on a query vector.
 - **Save to Disk:** Persist the database to a file using pickle.
