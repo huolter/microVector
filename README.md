@@ -1,7 +1,7 @@
 Note: quantization untested - will it work? XD
 
 <p align="center">
-  <img src="[http://some_place.com/image.png](https://www.supplydiva.com/cdn/shop/products/arrow_5_590x.jpg?v=1578178834)" />
+  <img src="https://www.supplydiva.com/cdn/shop/products/arrow_5_590x.jpg?v=1578178834" />
 </p>
 
 # MicroVector
