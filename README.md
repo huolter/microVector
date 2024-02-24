@@ -1,5 +1,9 @@
 Note: quantization untested - will it work? XD
 
+<p align="center">
+  <img src="[http://some_place.com/image.png](https://www.supplydiva.com/cdn/shop/products/arrow_5_590x.jpg?v=1578178834)" />
+</p>
+
 # MicroVector
 
 MicroVector is a lightweight Python tool for managing a small-scale vector database. It is designed to handle vectors associated with documents, providing functionalities such as adding, removing, searching, quantization and persisting the data to disk. All in-memory and with flat index.
