@@ -24,7 +24,7 @@ class MicroVectorDB:
     Example:
         >>> import numpy as np
         >>> from microvector import MicroVectorDB
-        >>> db = MicroVectorDB(dimension=3)
+        >>> db = MicroVectorDB()  # dimension inferred from first insert
         >>> db.add_node(np.array([1.0, 0.0, 0.0]), "hello")
         0
         >>> results = db.search_top_k(np.array([1.0, 0.0, 0.0]), k=1)
@@ -32,19 +32,20 @@ class MicroVectorDB:
         'hello'
     """
 
-    def __init__(self, dimension: int) -> None:
+    def __init__(self, dimension: int | None = None) -> None:
         """
         Initialize a new MicroVectorDB.
 
         Args:
-            dimension: The fixed dimension of all vectors in this database.
+            dimension: The dimension of all vectors. If omitted, it is inferred
+                       automatically from the first vector inserted.
 
         Raises:
-            ValueError: If dimension < 1.
+            ValueError: If dimension is provided and < 1.
         """
-        if dimension < 1:
+        if dimension is not None and dimension < 1:
             raise ValueError(f"dimension must be >= 1, got {dimension}")
-        self._dimension = dimension
+        self._dimension: int | None = dimension
         self._nodes: dict[int, Node] = {}
         self._next_index: int = 0
 
@@ -53,12 +54,17 @@ class MicroVectorDB:
     # ------------------------------------------------------------------ #
 
     def _validate_vector(self, vector: np.ndarray) -> None:
-        """Validate that a vector is a 1-D numpy array of the correct dimension."""
+        """Validate that a vector is a 1-D numpy array of the correct dimension.
+
+        If dimension was not set at init, it is inferred from the first call.
+        """
         if not isinstance(vector, np.ndarray):
             raise TypeError(f"vector must be np.ndarray, got {type(vector).__name__}")
         if vector.ndim != 1:
             raise ValueError(f"vector must be 1-D, got shape {vector.shape}")
-        if vector.shape[0] != self._dimension:
+        if self._dimension is None:
+            self._dimension = vector.shape[0]
+        elif vector.shape[0] != self._dimension:
             raise DimensionMismatchError(self._dimension, vector.shape[0])
 
     # ------------------------------------------------------------------ #
@@ -355,7 +361,8 @@ class MicroVectorDB:
         if indices:
             vector_matrix = np.stack([self._nodes[i].vector for i in indices])
         else:
-            vector_matrix = np.empty((0, self._dimension), dtype=np.float32)
+            dim = self._dimension or 0
+            vector_matrix = np.empty((0, dim), dtype=np.float32)
 
         with open(path / "index.json", "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)

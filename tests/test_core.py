@@ -18,6 +18,21 @@ class TestConstructor:
         db = MicroVectorDB(dimension=10)
         assert db._dimension == 10
 
+    def test_no_dimension_starts_as_none(self) -> None:
+        db = MicroVectorDB()
+        assert db._dimension is None
+
+    def test_dimension_inferred_from_first_insert(self) -> None:
+        db = MicroVectorDB()
+        db.add_node(np.ones(6), "doc")
+        assert db._dimension == 6
+
+    def test_dimension_locked_after_first_insert(self) -> None:
+        db = MicroVectorDB()
+        db.add_node(np.ones(6), "doc")
+        with pytest.raises(DimensionMismatchError):
+            db.add_node(np.ones(4), "doc2")
+
     def test_dimension_zero_raises(self) -> None:
         with pytest.raises(ValueError):
             MicroVectorDB(dimension=0)
@@ -45,9 +60,10 @@ class TestAddNode:
         empty_db.add_node(np.ones(DIMENSION), "doc")
         assert len(empty_db) == 1
 
-    def test_wrong_dimension_raises(self, empty_db: MicroVectorDB) -> None:
+    def test_wrong_dimension_raises(self) -> None:
+        db = MicroVectorDB(dimension=DIMENSION)
         with pytest.raises(DimensionMismatchError) as exc:
-            empty_db.add_node(np.ones(3), "doc")
+            db.add_node(np.ones(3), "doc")
         assert exc.value.expected == DIMENSION
         assert exc.value.got == 3
 
@@ -288,8 +304,12 @@ class TestDunderMethods:
     def test_repr_contains_class_name(self, empty_db: MicroVectorDB) -> None:
         assert "MicroVectorDB" in repr(empty_db)
 
-    def test_repr_contains_dimension(self, empty_db: MicroVectorDB) -> None:
+    def test_repr_contains_dimension_after_insert(self, empty_db: MicroVectorDB) -> None:
+        empty_db.add_node(np.ones(DIMENSION), "doc")
         assert "dimension=4" in repr(empty_db)
+
+    def test_repr_dimension_none_before_insert(self, empty_db: MicroVectorDB) -> None:
+        assert "dimension=None" in repr(empty_db)
 
     def test_stats_count(self, db_with_nodes: MicroVectorDB) -> None:
         s = db_with_nodes.stats()

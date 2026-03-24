@@ -10,13 +10,13 @@ DIMENSION = 4
 
 @pytest.fixture
 def empty_db() -> MicroVectorDB:
-    return MicroVectorDB(dimension=DIMENSION)
+    return MicroVectorDB()
 
 
 @pytest.fixture
 def db_with_nodes() -> MicroVectorDB:
     """Database with 3 orthogonal unit vectors for predictable similarity scores."""
-    db = MicroVectorDB(dimension=DIMENSION)
+    db = MicroVectorDB()
     db.add_node(np.array([1.0, 0.0, 0.0, 0.0]), "alpha", metadata={"tag": "a"})
     db.add_node(np.array([0.0, 1.0, 0.0, 0.0]), "beta", metadata={"tag": "b"})
     db.add_node(np.array([0.0, 0.0, 1.0, 0.0]), "gamma", metadata={"tag": "c"})

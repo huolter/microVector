@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "microvector"
-version = "0.1.0"
+name = "microvec"
+version = "0.2.0"
 description = "A lightweight, production-grade in-memory vector database"
 readme = "README.md"
 license = { text = "MIT" }

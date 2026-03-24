@@ -39,7 +39,7 @@ def embed(text: str) -> np.ndarray:
     result = client.embeddings.create(input=text, model="text-embedding-3-small")
     return np.array(result.data[0].embedding, dtype=np.float32)
 
-db = MicroVectorDB(dimension=1536)
+db = MicroVectorDB()  # dimension inferred from first insert
 db.add_node(embed("Paris is the capital of France"), "Paris is the capital of France")
 db.add_node(embed("The Eiffel Tower is in Paris"),   "The Eiffel Tower is in Paris")
 db.add_node(embed("Python is a programming language"), "Python is a programming language")
@@ -63,7 +63,7 @@ model = SentenceTransformer("all-MiniLM-L6-v2")  # pip install sentence-transfor
 def embed(text: str) -> np.ndarray:
     return model.encode(text, normalize_embeddings=True)
 
-db = MicroVectorDB(dimension=384)
+db = MicroVectorDB()  # dimension inferred from first insert
 db.add_node(embed("Paris is the capital of France"), "Paris is the capital of France")
 
 results = db.search_top_k(embed("What is the capital of France?"), k=1)
@@ -99,12 +99,13 @@ pip install -e ".[dev]"
 
 ## API Reference
 
-### `MicroVectorDB(dimension)`
+### `MicroVectorDB(dimension=None)`
 
-Create a new database. All vectors must have this exact dimension.
+Create a new database. If `dimension` is omitted, it is inferred automatically from the first vector inserted and locked for all subsequent inserts.
 
 ```python
-db = MicroVectorDB(dimension=512)
+db = MicroVectorDB()           # recommended — dimension inferred from first insert
+db = MicroVectorDB(dimension=512)  # or set explicitly
 ```
 
 ---
