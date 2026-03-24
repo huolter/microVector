@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "microvector"
+version = "0.1.0"
+description = "A lightweight, production-grade in-memory vector database"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+authors = [{ name = "huolter" }]
+keywords = ["vector", "database", "embeddings", "similarity", "search", "rag"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Database",
+    "Typing :: Typed",
+]
+dependencies = ["numpy>=1.21.0"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/huolter/microVector"
+Repository = "https://github.com/huolter/microVector"
+"Bug Tracker" = "https://github.com/huolter/microVector/issues"
+Changelog = "https://github.com/huolter/microVector/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["microvector"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=microvector --cov-report=term-missing --cov-fail-under=90"
+
+[tool.coverage.run]
+source = ["microvector"]
+omit = ["tests/*"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+ignore_missing_imports = true

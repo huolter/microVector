@@ -1,70 +1,258 @@
-Note: quantization untested - will it work? XD
-
-<p align="center">
-  <img src="https://github.com/huolter/microVector/blob/2d7830353dc7df238e324ae19458774fe959bddf/Screenshot%202024-02-24%20at%2010.41.04.png" />
-</p>
-
 # MicroVector
 
-MicroVector is a lightweight Python tool for managing a small-scale vector database. It is designed to handle vectors associated with documents, providing functionalities such as adding, removing, searching, quantization and persisting the data to disk. All in-memory and with flat index.
+A lightweight, production-grade in-memory vector database for Python.
 
-MicroVector follows the SSII paradigm: Stupid Simple, Incredible Inefficient. :-) 
+```
+pip install microvector
+```
+
+No external services. No complex setup. Just numpy and your embeddings.
+
+---
 
 ## Features
 
-- **Add Node:** Add a vector and its associated document to the database.
-- **Binary Quantization:** Apply n-bits binary quantization. 
-- **Remove Node:** Remove a node from the database based on its index.
-- **Search Top K:** Retrieve the top K similar nodes based on a query vector.
-- **Save to Disk:** Persist the database to a file using pickle.
-- **Read from Disk:** Load the database from a previously saved file.
+- **Fast similarity search** — cosine, euclidean, and dot product metrics
+- **Rich results** — every search result includes the document text and metadata, not just an index
+- **Batch operations** — insert thousands of vectors in one call
+- **Metadata filtering** — filter candidates before scoring with any Python predicate
+- **Safe persistence** — JSON + numpy format (no pickle, no security risk)
+- **Full type hints** — works great with mypy and IDEs
+- **Zero required dependencies** beyond numpy
 
-## Usage
+---
+
+## Quick Start
 
 ```python
-# Example Usage
-
-from microvector import MicroVectorDB
 import numpy as np
+from microvector import MicroVectorDB
 
-# Initialize MicroVectorDB with a specified vector dimension
-vector_db = MicroVectorDB(dimension=50)
+# Create a database for 768-dimensional embeddings (e.g. OpenAI ada-002)
+db = MicroVectorDB(dimension=768)
 
-# Add nodes without quantization
-vector_db.add_node(np.random.rand(50), "Document A")
-vector_db.add_node(np.random.rand(50), "Document B")
+# Add documents with their embeddings
+db.add_node(embed("Paris is the capital of France"), "Paris is the capital of France")
+db.add_node(embed("The Eiffel Tower is in Paris"),   "The Eiffel Tower is in Paris")
+db.add_node(embed("Python is a programming language"), "Python is a programming language")
 
-# Add nodes with 8-bit quantization
-vector_db.add_node(np.random.rand(50), "Document C", num_bits=8)
-vector_db.add_node(np.random.rand(50), "Document D", num_bits=8)
+# Search — results include document text, not just indexes
+results = db.search_top_k(embed("What city is the Eiffel Tower in?"), k=2)
+for r in results:
+    print(f"{r.score:.3f}  {r.document}")
+# 0.921  The Eiffel Tower is in Paris
+# 0.887  Paris is the capital of France
 
-# Remove a node by index
-vector_db.remove_node(0)
-
-# Search for the top 5 similar nodes based on a query vector
-query_vector = np.random.rand(50)
-top_results = vector_db.search_top_k(query_vector, k=5)
-
-# Save the database to disk
-vector_db.save_to_disk("vector_db.pkl")
-
-# Read the database from disk
-vector_db.read_from_disk("vector_db.pkl")
+# Save and reload
+db.save("my_knowledge_base")
+db = MicroVectorDB.load("my_knowledge_base")
 ```
 
-## Next
+---
 
-- Voroni Cells
-- Hierarchical Navigable Small-World (HNSW)
-- Examples
-- Benchmarks on speed and memory ussage
+## Installation
 
-## Links and references
+**Requires Python 3.9+ and numpy >= 1.21.**
 
-- https://thedataquarry.com/posts/vector-db-3/
-- https://www.pinecone.io/learn/series/faiss/faiss-tutorial/
-- https://arxiv.org/abs/1603.09320
-- https://www.youtube.com/watch?v=PNVJvZEkuXo
-- https://www.youtube.com/watch?v=t9mRf2S5vDI 
-- https://www.youtube.com/watch?v=SKrHs03i08Q
+```bash
+pip install microvector
+```
 
+Or from source:
+
+```bash
+git clone https://github.com/huolter/microVector
+cd microVector
+pip install -e ".[dev]"
+```
+
+---
+
+## API Reference
+
+### `MicroVectorDB(dimension)`
+
+Create a new database. All vectors must have this exact dimension.
+
+```python
+db = MicroVectorDB(dimension=512)
+```
+
+---
+
+### `add_node(vector, document, metadata=None, num_bits=None) → int`
+
+Add a single vector. Returns the assigned index.
+
+```python
+idx = db.add_node(
+    vector=np.array([...]),
+    document="The text this vector represents",
+    metadata={"source": "wikipedia", "date": "2024-01"},
+    num_bits=8,   # optional: apply 8-bit scalar quantization
+)
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `vector` | `np.ndarray` | 1-D array matching the database dimension |
+| `document` | `str` | Text or identifier associated with this vector |
+| `metadata` | `dict` | Optional key-value pairs stored alongside the vector |
+| `num_bits` | `int` | Optional quantization (1–16 bits). Reduces memory at the cost of precision. |
+
+---
+
+### `add_nodes(vectors, documents, metadata=None) → list[int]`
+
+Batch insert. All inputs are validated before any insertion occurs.
+
+```python
+import numpy as np
+
+vectors = np.random.rand(1000, 512)
+docs = [f"Document {i}" for i in range(1000)]
+indices = db.add_nodes(vectors, docs)
+```
+
+---
+
+### `search_top_k(query_vector, k, metric='cosine', filter_fn=None) → list[SearchResult]`
+
+Find the top-k most similar vectors. Returns results sorted by score descending.
+
+```python
+results = db.search_top_k(query, k=5)
+results = db.search_top_k(query, k=5, metric="euclidean")
+
+# Filter before scoring — only consider documents tagged "news"
+results = db.search_top_k(
+    query, k=5,
+    filter_fn=lambda node: node.metadata.get("type") == "news"
+)
+```
+
+**Metrics:**
+
+| Metric | Range | Notes |
+|--------|-------|-------|
+| `cosine` | [-1, 1] | Best for text embeddings. Direction-based, scale-invariant. |
+| `euclidean` | (0, 1] | `1 / (1 + dist)`. Identical vectors = 1.0. |
+| `dot` | (-∞, +∞) | Fastest. Best for pre-normalized unit vectors. |
+
+**`SearchResult` fields:**
+
+```python
+result.index     # int   — node's assigned index
+result.document  # str   — the document text
+result.score     # float — similarity score (higher = more similar)
+result.metadata  # dict  — metadata stored with this node
+```
+
+---
+
+### `search_by_threshold(query_vector, min_score, metric='cosine') → list[SearchResult]`
+
+Return all nodes with score >= `min_score`, sorted descending.
+
+```python
+results = db.search_by_threshold(query, min_score=0.8)
+```
+
+---
+
+### `get_node(index) → Node`
+
+Retrieve a node by index.
+
+```python
+node = db.get_node(42)
+print(node.document, node.metadata)
+```
+
+---
+
+### `update_node(index, vector=None, document=None, metadata=None)`
+
+Update fields of an existing node. Omit fields to leave them unchanged.
+
+```python
+db.update_node(42, document="Updated text")
+db.update_node(42, metadata={"status": "reviewed"})
+```
+
+---
+
+### `remove_node(index)`
+
+Remove a node. Its index is permanently retired (never reused).
+
+```python
+db.remove_node(42)
+```
+
+---
+
+### `save(path)` / `MicroVectorDB.load(path)`
+
+Persist to and restore from a `.mvdb/` directory. Safe format: JSON + numpy binary.
+
+```python
+db.save("my_db")              # creates my_db.mvdb/
+db = MicroVectorDB.load("my_db")
+```
+
+The `.mvdb/` directory contains:
+- `index.json` — node metadata and documents (human-readable)
+- `vectors.npy` — all vectors as a 2-D numpy array
+
+---
+
+### Utility methods
+
+```python
+len(db)           # number of nodes
+42 in db          # check if index exists
+repr(db)          # MicroVectorDB(dimension=512, nodes=1000, next_index=1000)
+db.stats()        # {'count': 1000, 'dimension': 512, 'next_index': 1000, ...}
+```
+
+---
+
+## Exceptions
+
+All exceptions inherit from `MicroVectorError`.
+
+```python
+from microvector import (
+    MicroVectorError,
+    DimensionMismatchError,  # wrong vector dimension
+    EmptyDatabaseError,      # search on empty database
+    NodeNotFoundError,       # get/update/remove non-existent index
+)
+```
+
+---
+
+## Design Notes
+
+**Why in-memory?** MicroVector is designed for small-to-medium datasets (up to ~100k vectors) where the simplicity of pure-Python outweighs the need for a dedicated service. It starts instantly, needs no configuration, and is trivially embeddable in any Python application.
+
+**Why not pickle?** Pickle can execute arbitrary code when loading untrusted files. MicroVector uses JSON + numpy binary format which is safe, portable, and inspectable with any text editor.
+
+**Index monotonicity.** Deleted indexes are never reused. This prevents stale external references from silently pointing to new data.
+
+---
+
+## Roadmap
+
+- [ ] Approximate nearest neighbor (HNSW)
+- [ ] Voronoi cell indexing
+- [ ] FAISS optional backend for large datasets
+- [ ] Async search support
+- [ ] Benchmarks
+
+---
+
+## License
+
+MIT
