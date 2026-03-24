@@ -24,26 +24,55 @@ No external services. No complex setup. Just numpy and your embeddings.
 
 ## Quick Start
 
+microvec stores and searches vectors — you bring the embeddings from any model you like.
+
+### With OpenAI
+
 ```python
 import numpy as np
+from openai import OpenAI
 from microvector import MicroVectorDB
 
-# Create a database for 768-dimensional embeddings (e.g. OpenAI ada-002)
-db = MicroVectorDB(dimension=768)
+client = OpenAI()  # uses OPENAI_API_KEY env var
 
-# Add documents with their embeddings
+def embed(text: str) -> np.ndarray:
+    result = client.embeddings.create(input=text, model="text-embedding-3-small")
+    return np.array(result.data[0].embedding, dtype=np.float32)
+
+db = MicroVectorDB(dimension=1536)
 db.add_node(embed("Paris is the capital of France"), "Paris is the capital of France")
 db.add_node(embed("The Eiffel Tower is in Paris"),   "The Eiffel Tower is in Paris")
 db.add_node(embed("Python is a programming language"), "Python is a programming language")
 
-# Search — results include document text, not just indexes
 results = db.search_top_k(embed("What city is the Eiffel Tower in?"), k=2)
 for r in results:
     print(f"{r.score:.3f}  {r.document}")
 # 0.921  The Eiffel Tower is in Paris
 # 0.887  Paris is the capital of France
+```
 
-# Save and reload
+### With a local model (no API key)
+
+```python
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from microvector import MicroVectorDB
+
+model = SentenceTransformer("all-MiniLM-L6-v2")  # pip install sentence-transformers
+
+def embed(text: str) -> np.ndarray:
+    return model.encode(text, normalize_embeddings=True)
+
+db = MicroVectorDB(dimension=384)
+db.add_node(embed("Paris is the capital of France"), "Paris is the capital of France")
+
+results = db.search_top_k(embed("What is the capital of France?"), k=1)
+print(results[0].document)  # Paris is the capital of France
+```
+
+### Save and reload
+
+```python
 db.save("my_knowledge_base")
 db = MicroVectorDB.load("my_knowledge_base")
 ```
