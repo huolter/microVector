@@ -304,7 +304,9 @@ class TestDunderMethods:
     def test_repr_contains_class_name(self, empty_db: MicroVectorDB) -> None:
         assert "MicroVectorDB" in repr(empty_db)
 
-    def test_repr_contains_dimension_after_insert(self, empty_db: MicroVectorDB) -> None:
+    def test_repr_contains_dimension_after_insert(
+        self, empty_db: MicroVectorDB
+    ) -> None:
         empty_db.add_node(np.ones(DIMENSION), "doc")
         assert "dimension=4" in repr(empty_db)
 
